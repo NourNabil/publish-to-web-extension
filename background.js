@@ -25,6 +25,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       console.error(error);
       chrome.runtime.sendMessage({ type: 'WORKFLOW_ERROR', error: error.message });
     });
+  } else if (request.action === 'CONFIRM_PUBLISH') {
+    deployFromPreview().catch(error => {
+      console.error(error);
+      chrome.runtime.sendMessage({ type: 'WORKFLOW_ERROR', error: error.message });
+    });
+    // Respond immediately, async work handles its own status updates
+    sendResponse({ success: true });
+  } else if (request.action === 'DISCARD_PREVIEW') {
+    chrome.storage.local.remove('previewData');
+    chrome.runtime.sendMessage({ type: 'WORKFLOW_DISCARDED' });
+    sendResponse({ success: true });
   }
   return true;
 });
@@ -232,9 +243,10 @@ async function runWorkflow(tabId, customPrompt, scrapePage) {
       imageResults.forEach(res => {
         if (res) {
           generatedImages[res.filename] = res.base64;
-          // Update index.html to point to the local filename
+          // Update index.html to preview locally with data URI later
+          const dataUri = `data:image/jpeg;base64,${res.base64}`;
           const replaceRegex = new RegExp(`<img[^>]*data-filename=['"]${res.filename}['"][^>]*>`, 'gi');
-          htmlStr = htmlStr.replace(replaceRegex, `<img src="./${res.filename}" alt="${res.filename}" />`);
+          htmlStr = htmlStr.replace(replaceRegex, `<img src="${dataUri}" data-filename="${res.filename}" alt="${res.filename}" />`);
         }
       });
 
@@ -245,18 +257,41 @@ async function runWorkflow(tabId, customPrompt, scrapePage) {
     }
   }
 
+  // Phase 2.5: Preview
+  sendStatus('Phase 2.5: Opening Preview...');
+  const previewData = {
+    html: siteFiles['index.html'],
+    css: siteFiles['styles.css'] || '',
+    images: generatedImages,
+    netlifyKey: netlifyKey
+  };
+
+  await chrome.storage.local.set({ previewData });
+  chrome.tabs.create({ url: chrome.runtime.getURL('preview.html') });
+  sendStatus('Waiting for preview confirmation...');
+}
+
+async function deployFromPreview() {
+  const { previewData } = await chrome.storage.local.get('previewData');
+  if (!previewData) throw new Error("No preview data found to deploy.");
+
   // Phase 3: Bundling with JSZip
   sendStatus('Phase 3: Bundling files with JSZip...');
   const zip = new JSZip();
 
-  // Add text files
-  for (const [filename, content] of Object.entries(siteFiles)) {
-    zip.file(filename, content);
+  let htmlStr = previewData.html;
+
+  // Re-replace data URIs with local filenames for the bundle
+  for (const [filename, base64] of Object.entries(previewData.images)) {
+    const dataUri = `data:image/jpeg;base64,${base64}`;
+    // Simple string replace is safe because dataUri is massive and unique
+    htmlStr = htmlStr.replace(dataUri, `./${filename}`);
+    zip.file(filename, base64, { base64: true });
   }
 
-  // Add image files
-  for (const [filename, base64] of Object.entries(generatedImages)) {
-    zip.file(filename, base64, { base64: true });
+  zip.file('index.html', htmlStr);
+  if (previewData.css) {
+    zip.file('styles.css', previewData.css);
   }
 
   const zipBlob = await zip.generateAsync({ type: 'blob' });
@@ -268,7 +303,7 @@ async function runWorkflow(tabId, customPrompt, scrapePage) {
   const netlifyRes = await fetch('https://api.netlify.com/api/v1/sites', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${netlifyKey}`,
+      'Authorization': `Bearer ${previewData.netlifyKey}`,
       'Content-Type': 'application/zip'
     },
     body: zipBlob
@@ -288,4 +323,7 @@ async function runWorkflow(tabId, customPrompt, scrapePage) {
     type: 'WORKFLOW_COMPLETE',
     url: liveUrl
   });
+
+  // Cleanup heavy preview data from storage
+  chrome.storage.local.remove('previewData');
 }

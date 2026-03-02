@@ -126,6 +126,9 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (message.type === 'WORKFLOW_ERROR') {
       logStatus(`Error: ${message.error}`);
       publishBtn.disabled = false;
+    } else if (message.type === 'WORKFLOW_DISCARDED') {
+      logStatus(`Draft discarded by user.`);
+      publishBtn.disabled = false;
     }
   });
 

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Preview Generated Site</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+    #preview-container {
+      width: 100%;
+      height: 100vh;
+      border: none;
+      background: #fff;
+    }
+    #action-bar {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.8);
+      padding: 12px 24px;
+      border-radius: 30px;
+      display: flex;
+      gap: 16px;
+      z-index: 10000;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      backdrop-filter: blur(10px);
+    }
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    #discard-btn {
+      background: #444;
+      color: white;
+    }
+    #discard-btn:hover {
+      background: #555;
+    }
+    #publish-btn {
+      background: #4A90E2;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    #publish-btn:hover {
+      background: #357ABD;
+    }
+    .status-text {
+      color: white;
+      font-size: 14px;
+      align-self: center;
+      margin-left: 10px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  
+  <iframe id="preview-container"></iframe>
+
+  <div id="action-bar">
+    <button id="discard-btn">Discard</button>
+    <button id="publish-btn">🚀 Publish to Web</button>
+    <span id="publish-status" class="status-text">Publishing...</span>
+  </div>
+
+  <script src="preview.js"></script>
+</body>
+</html>
