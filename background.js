@@ -233,7 +233,18 @@ async function runWorkflow(tabId, customPrompt, scrapePage) {
         if (base64) {
           return { filename: imgReq.filename, base64 };
         } else {
-          sendStatus(`Warning: Unknown response structure for ${imgReq.filename}`);
+          let reason = "Unknown response structure";
+          if (imgData.promptFeedback?.blockReason) {
+            reason = `Blocked by safety filters (${imgData.promptFeedback.blockReason})`;
+          } else if (imgData.candidates?.[0]?.finishReason) {
+            reason = `Finished with reason: ${imgData.candidates[0].finishReason}`;
+          } else if (imgData.error) {
+            reason = `API Error: ${imgData.error.message}`;
+          } else if (imgData.error?.code) {
+            reason = `API Error Code: ${imgData.error.code}`;
+          }
+          sendStatus(`Warning: Failed to generate ${imgReq.filename} - ${reason}`);
+          console.warn(`Full response for ${imgReq.filename}:`, imgData);
           return null;
         }
       });
