@@ -67,6 +67,18 @@
         placeholder="Specific design instructions, extra context, or what the site should be about entirely if you don't want to scrape the page..."></textarea>
     </div>
 
+    <div class="form-group" style="margin-bottom: 12px;">
+      <label>Upload Images (Optional)</label>
+      <label for="image-upload" class="file-upload-btn">
+        <svg fill="currentColor" viewBox="0 0 24 24">
+          <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+        </svg>
+        Select Images
+      </label>
+      <input type="file" id="image-upload" multiple accept="image/*" class="hidden-file-input">
+      <div id="image-preview-list" class="image-preview-list"></div>
+    </div>
+
     <div class="form-group checkbox-group" style="margin-bottom: 8px;">
       <input type="checkbox" id="scrape-page" checked>
       <label for="scrape-page">Include content from current tab</label>

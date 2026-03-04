@@ -14,6 +14,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const scrapePageCheckbox = document.getElementById('scrape-page');
   const imageModelSelect = document.getElementById('image-model');
   const imageModelGroup = document.getElementById('image-model-group');
+  const imageUploadInput = document.getElementById('image-upload');
+  const imagePreviewList = document.getElementById('image-preview-list');
+  let uploadedFiles = [];
+
+  imageUploadInput.addEventListener('change', (e) => {
+    uploadedFiles = Array.from(e.target.files);
+    if (uploadedFiles.length > 0) {
+      imagePreviewList.innerHTML = uploadedFiles.map(f => `<div>📄 ${f.name} (${Math.round(f.size / 1024)}kb)</div>`).join('');
+    } else {
+      imagePreviewList.innerHTML = '';
+    }
+  });
 
   // Load saved settings
   chrome.storage.local.get(['geminiKey', 'netlifyKey', 'geminiModel', 'imageModel', 'enableImageGen', 'customPrompt', 'scrapePage'], (result) => {
@@ -110,12 +122,36 @@ document.addEventListener('DOMContentLoaded', () => {
         logStatus(`Generating site from Custom Instructions...`);
       }
 
+      // Read uploaded images
+      const uploadedImages = [];
+      if (uploadedFiles.length > 0) {
+        logStatus(`Reading ${uploadedFiles.length} uploaded image(s)...`);
+        for (const file of uploadedFiles) {
+          const base64 = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          });
+          const dataPrefixRegex = /^data:(.*?);base64,/;
+          const match = base64.match(dataPrefixRegex);
+          if (match) {
+            uploadedImages.push({
+              filename: file.name,
+              mimeType: match[1],
+              data: base64.replace(dataPrefixRegex, '')
+            });
+          }
+        }
+      }
+
       // Tell background script to start workflow with the tab ID
       chrome.runtime.sendMessage({
         action: 'START_PUBLISH_WORKFLOW',
         tabId: tab.id,
         customPrompt: customPromptInput.value.trim(),
-        scrapePage: scrapePageCheckbox.checked
+        scrapePage: scrapePageCheckbox.checked,
+        uploadedImages: uploadedImages
       });
 
     } catch (error) {

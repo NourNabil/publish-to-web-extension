@@ -6,9 +6,11 @@ chrome.sidePanel
   .setPanelBehavior({ openPanelOnActionClick: true })
   .catch((error) => console.error(error));
 
-const PROMPT_IMAGE_ON = `You are an expert frontend web developer acting as an automated site generator. Input: You will be provided with raw text scraped from a user's tab, custom instructions from the user, or both. DO NOT recreate or mimic the layout or UI of the application the text was scraped from. Instead, synthesize a brand new stylized website based on what the text and instructions are asking for. CRITICAL DATA ACCURACY: You MUST use the exact facts, names, dates, times, prices, and locations found in the input text and instructions. DO NOT use generic placeholders like "[Name]" or "[Date]". If the user provides "John and Jane", put "John and Jane" in the HTML. DO NOT hallucinate, invent, or assume any details. If an expected piece of information (like a Venue or Location) is missing from the input, do NOT create a placeholder for it and do NOT invent one; omit that section or field entirely and elegantly. Design Standards: Build a modern, static, single-page application. Create a stunning, premium design with a curated, harmonious color palette (e.g., sleek dark modes or vibrant UI), modern typography, and responsive layouts. DO NOT output a plain white background. Ensure images are styled elegantly (e.g., max-width: 100%, object-fit: cover, rounded corners). Constraints: No backend databases, logged-in states, or tracking. CRITICAL - Image Handling: Do NOT use standard URL placeholders. When an image is needed to match the mood/content, format the img tag exactly like this: <img data-ai-prompt="[A highly detailed description of the image]" src="loading-placeholder.gif" data-filename="[unique-name].jpg" />. Output Format: Respond ONLY with raw code blocks for the HTML and CSS. You MUST use markdown code blocks with the language specified. The HTML MUST include <link rel="stylesheet" href="styles.css"> in the <head>. Example:\n\`\`\`html\n...\n\`\`\`\n\`\`\`css\n...\n\`\`\`\nDo NOT wrap the output in JSON. CRITICAL: Keep output concise by summarizing long text content to avoid token limits.`;
+const PROMPT_IMAGE_INJECT = `\nThe user may have uploaded some personal images along with this request (labeled [USER UPLOADED IMAGE: filename]). If they did, you MUST logically incorporate them into your HTML layout according to their content. Reference them EXACTLY by their filename (e.g., <img src="filename.jpg">). Do NOT generate an AI prompt for these pre-existing images; just use their filenames directly.`;
 
-const PROMPT_IMAGE_OFF = `You are an expert frontend web developer acting as an automated site generator. Input: You will be provided with raw text scraped from a user's tab, custom instructions from the user, or both. DO NOT recreate or mimic the layout or UI of the application the text was scraped from. Instead, synthesize a brand new stylized website based on what the text and instructions are asking for. CRITICAL DATA ACCURACY: You MUST use the exact facts, names, dates, times, prices, and locations found in the input text and instructions. DO NOT use generic placeholders like "[Name]" or "[Date]". If the user provides "John and Jane", put "John and Jane" in the HTML. DO NOT hallucinate, invent, or assume any details. If an expected piece of information (like a Venue or Location) is missing from the input, do NOT create a placeholder for it and do NOT invent one; omit that section or field entirely and elegantly. Design Standards: Build a modern, static, single-page application. Create a stunning, premium design with a curated, harmonious color palette (e.g., sleek dark modes or vibrant UI), modern typography, and responsive layouts. DO NOT output a plain white background. Constraints: No backend databases, logged-in states, or tracking. Image Handling: You cannot generate custom images. Use visually appealing CSS styling, typography, and layout instead of relying on images. Output Format: Respond ONLY with raw code blocks for the HTML and CSS. You MUST use markdown code blocks with the language specified. The HTML MUST include <link rel="stylesheet" href="styles.css"> in the <head>. Example:\n\`\`\`html\n...\n\`\`\`\n\`\`\`css\n...\n\`\`\`\nDo NOT wrap the output in JSON. CRITICAL: Keep output concise by summarizing long text content to avoid token limits.`;
+const PROMPT_IMAGE_ON = `You are an expert frontend web developer acting as an automated site generator. Input: You will be provided with raw text scraped from a user's tab, custom instructions from the user, or both. DO NOT recreate or mimic the layout or UI of the application the text was scraped from. Instead, synthesize a brand new stylized website based on what the text and instructions are asking for. CRITICAL DATA ACCURACY: You MUST use the exact facts, names, dates, times, prices, and locations found in the input text and instructions. DO NOT use generic placeholders like "[Name]" or "[Date]". If the user provides "John and Jane", put "John and Jane" in the HTML. DO NOT hallucinate, invent, or assume any details. If an expected piece of information (like a Venue or Location) is missing from the input, do NOT create a placeholder for it and do NOT invent one; omit that section or field entirely and elegantly. Design Standards: Build a modern, static, single-page application. Create a stunning, premium design with a curated, harmonious color palette (e.g., sleek dark modes or vibrant UI), modern typography, and responsive layouts. DO NOT output a plain white background. Ensure images are styled elegantly (e.g., max-width: 100%, object-fit: cover, rounded corners). Constraints: No backend databases, logged-in states, or tracking. CRITICAL - Image Handling: Do NOT use standard URL placeholders. When an image is needed to match the mood/content, format the img tag exactly like this: <img data-ai-prompt="[A highly detailed description of the image]" src="loading-placeholder.gif" data-filename="[unique-name].jpg" />. Output Format: Respond ONLY with raw code blocks for the HTML and CSS. You MUST use markdown code blocks with the language specified. The HTML MUST include <link rel="stylesheet" href="styles.css"> in the <head>. Example:\n\`\`\`html\n...\n\`\`\`\n\`\`\`css\n...\n\`\`\`\nDo NOT wrap the output in JSON. CRITICAL: Keep output concise by summarizing long text content to avoid token limits.` + PROMPT_IMAGE_INJECT;
+
+const PROMPT_IMAGE_OFF = `You are an expert frontend web developer acting as an automated site generator. Input: You will be provided with raw text scraped from a user's tab, custom instructions from the user, or both. DO NOT recreate or mimic the layout or UI of the application the text was scraped from. Instead, synthesize a brand new stylized website based on what the text and instructions are asking for. CRITICAL DATA ACCURACY: You MUST use the exact facts, names, dates, times, prices, and locations found in the input text and instructions. DO NOT use generic placeholders like "[Name]" or "[Date]". If the user provides "John and Jane", put "John and Jane" in the HTML. DO NOT hallucinate, invent, or assume any details. If an expected piece of information (like a Venue or Location) is missing from the input, do NOT create a placeholder for it and do NOT invent one; omit that section or field entirely and elegantly. Design Standards: Build a modern, static, single-page application. Create a stunning, premium design with a curated, harmonious color palette (e.g., sleek dark modes or vibrant UI), modern typography, and responsive layouts. DO NOT output a plain white background. Constraints: No backend databases, logged-in states, or tracking. Image Handling: You cannot generate custom images. Use visually appealing CSS styling, typography, and layout instead of relying on images. Output Format: Respond ONLY with raw code blocks for the HTML and CSS. You MUST use markdown code blocks with the language specified. The HTML MUST include <link rel="stylesheet" href="styles.css"> in the <head>. Example:\n\`\`\`html\n...\n\`\`\`\n\`\`\`css\n...\n\`\`\`\nDo NOT wrap the output in JSON. CRITICAL: Keep output concise by summarizing long text content to avoid token limits.` + PROMPT_IMAGE_INJECT;
 
 function sendStatus(text) {
   chrome.runtime.sendMessage({ type: 'STATUS_UPDATE', text });
@@ -21,9 +23,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     const tabId = request.tabId;
     const customPrompt = request.customPrompt || '';
     const scrapePage = request.scrapePage === true || request.scrapePage === undefined; // Explicit fix for undefined states
+    const uploadedImages = request.uploadedImages || [];
 
     // Run workflow asynchronously
-    runWorkflow(tabId, customPrompt, scrapePage).catch(error => {
+    runWorkflow(tabId, customPrompt, scrapePage, uploadedImages).catch(error => {
       if (error.name === 'AbortError' || (error.message && error.message.toLowerCase().includes('abort'))) {
         chrome.runtime.sendMessage({ type: 'WORKFLOW_CANCELLED' });
       } else {
@@ -52,7 +55,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   return true;
 });
 
-async function runWorkflow(tabId, customPrompt, scrapePage) {
+async function runWorkflow(tabId, customPrompt, scrapePage, uploadedImages = []) {
   if (currentAbortController) {
     currentAbortController.abort();
   }
@@ -102,8 +105,8 @@ async function runWorkflow(tabId, customPrompt, scrapePage) {
     sendStatus('Skipping page scrape. Using custom prompt only.');
   }
 
-  if (!pageText && !customPrompt) {
-    throw new Error('Failed to extract text from the tab, and no Custom Prompt was provided.');
+  if (!pageText && !customPrompt && uploadedImages.length === 0) {
+    throw new Error('Failed to extract text from the tab, and no Context was provided.');
   }
 
   // Combine scraped context and custom user prompt
@@ -111,13 +114,28 @@ async function runWorkflow(tabId, customPrompt, scrapePage) {
   if (pageText) finalPrompt += `<SCRAPED_PAGE_CONTENT>\n${pageText}\n</SCRAPED_PAGE_CONTENT>\n\n`;
   if (customPrompt) finalPrompt += `<USER_CUSTOM_INSTRUCTIONS>\n${customPrompt}\n</USER_CUSTOM_INSTRUCTIONS>`;
 
+  let contentParts = [];
+  if (uploadedImages && uploadedImages.length > 0) {
+    for (const img of uploadedImages) {
+      // Prompt explicitly binds the filename to the multi-modal image
+      contentParts.push({ text: `\n[USER UPLOADED IMAGE: ${img.filename}]\n` });
+      contentParts.push({
+        inlineData: {
+          mimeType: img.mimeType,
+          data: img.data
+        }
+      });
+    }
+  }
+  if (finalPrompt) contentParts.push({ text: finalPrompt });
+
   // Phase 1: Text Generation
   sendStatus(`Phase 1: Generating site using ${geminiModel}...`);
   const systemPrompt = enableImageGen ? PROMPT_IMAGE_ON : PROMPT_IMAGE_OFF;
 
   const generatePayload = {
     system_instruction: { parts: [{ text: systemPrompt }] },
-    contents: [{ parts: [{ text: finalPrompt }] }],
+    contents: [{ parts: contentParts }],
     generationConfig: {
       response_mime_type: "text/plain",
       maxOutputTokens: 8192
@@ -277,9 +295,9 @@ async function runWorkflow(tabId, customPrompt, scrapePage) {
 
       imageResults.forEach(res => {
         if (res) {
-          generatedImages[res.filename] = res.base64;
           // Update index.html to preview locally with data URI later
           const dataUri = `data:image/jpeg;base64,${res.base64}`;
+          generatedImages[res.filename] = dataUri;
           const replaceRegex = new RegExp(`<img[^>]*data-filename=['"]${res.filename}['"][^>]*>`, 'gi');
           htmlStr = htmlStr.replace(replaceRegex, `<img src="${dataUri}" data-filename="${res.filename}" alt="${res.filename}" />`);
         }
@@ -290,6 +308,22 @@ async function runWorkflow(tabId, customPrompt, scrapePage) {
     } else {
       sendStatus('No valid AI image prompts found in the generated HTML. Skipping image generation.');
     }
+  }
+
+  // Inject uploaded images directly into the bundle state
+  if (uploadedImages && uploadedImages.length > 0) {
+    let newHtmlStr = siteFiles['index.html'] || "";
+    for (const img of uploadedImages) {
+      const dataUri = `data:${img.mimeType};base64,${img.data}`;
+      generatedImages[img.filename] = dataUri;
+
+      const replaceRegex1 = new RegExp(`src=['"]\\./${img.filename}['"]`, 'gi');
+      const replaceRegex2 = new RegExp(`src=['"]${img.filename}['"]`, 'gi');
+      newHtmlStr = newHtmlStr.replace(replaceRegex1, `src="${dataUri}"`);
+      newHtmlStr = newHtmlStr.replace(replaceRegex2, `src="${dataUri}"`);
+    }
+    siteFiles['index.html'] = newHtmlStr;
+    sendStatus(`Injected ${uploadedImages.length} uploaded image(s) into the bundle.`);
   }
 
   // Phase 2.5: Preview
@@ -317,10 +351,10 @@ async function deployFromPreview() {
   let htmlStr = previewData.html;
 
   // Re-replace data URIs with local filenames for the bundle
-  for (const [filename, base64] of Object.entries(previewData.images)) {
-    const dataUri = `data:image/jpeg;base64,${base64}`;
+  for (const [filename, dataUri] of Object.entries(previewData.images)) {
     // Simple string replace is safe because dataUri is massive and unique
     htmlStr = htmlStr.replace(dataUri, `./${filename}`);
+    const base64 = dataUri.split(';base64,')[1];
     zip.file(filename, base64, { base64: true });
   }
 

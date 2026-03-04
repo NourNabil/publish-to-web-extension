@@ -211,3 +211,44 @@ a {
 a:hover {
   text-decoration: underline;
 }
+.hidden-file-input {
+  display: none;
+}
+
+.file-upload-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px;
+  background-color: var(--surface-color);
+  border: 1px dashed var(--border-color);
+  color: var(--text-muted);
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  font-family: var(--font-family);
+  font-size: 13px;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.file-upload-btn:hover {
+  background-color: #2a2a2a;
+  color: var(--text-color);
+  border-color: var(--primary-color);
+}
+
+.file-upload-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.image-preview-list {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
