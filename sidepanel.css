@@ -250,5 +250,45 @@ a:hover {
   color: var(--text-muted);
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
+  }
+  
+  .preview-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--bg-color);
+    padding: 6px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+  }
+  
+  .preview-item-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 85%;
+  }
+  
+  .remove-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+  }
+  
+  .remove-btn:hover {
+    background-color: rgba(255, 82, 82, 0.1);
+    color: #ff5252;
+  }
+  
+  .remove-btn svg {
+    width: 14px;
+    height: 14px;
 }

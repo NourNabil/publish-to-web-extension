@@ -5,10 +5,12 @@
 ## ✨ Features
 
 - **Context-Aware Generation**: Scrape the text of your active Chrome tab to provide instant context to the AI.
-- **Custom Instructions**: Bypass scraping or augment it by providing your own custom design instructions and prompts.
+- **Custom Instructions & Multimodality**: Bypass scraping or augment it by providing your own custom design instructions and prompts. You can even upload your own raw images, and Gemini will organically weave them into the HTML design.
 - **Gemini Text & Image Generation**: 
-  - Uses Google's state-of-the-art **Gemini Flash/Pro** models to write all HTML, CSS, and copy logic.
+  - Uses Google's state-of-the-art **Gemini Flash/Pro** models to write all HTML, CSS, and copy logic handling massive contextual payloads.
   - Dynamically routes to **Gemini Image** or **Imagen 3** models to generate custom photography and assets based on the webpage's context.
+- **User Image Uploads**: Add your own `.jpg` or `.png` files via the responsive UI. The agent will read your files on-the-fly and bind them accurately to the preview sandbox and final export without you needing to write a single line of pathing.
+- **Graceful Cancellation**: Mid-generation cold feet? The side-panel features a native "Cancel" button powered by `AbortController` to cleanly sever ongoing API requests and reset the UI instantly.
 - **Local Preview Sandbox**: Interactively preview your newly generated website in a full-screen local sandbox before pushing it live.
 - **One-Click Netlify Deployment**: Automatically bundles all generated HTML, CSS, and Images into a ZIP archive and deploys it globally via the Netlify API.
 
@@ -36,17 +38,19 @@ Because this is a developer prototype, it is not available on the Chrome Web Sto
 1. **Pin the Extension**: Click the puzzle piece icon in Chrome and pin the "Publish to Web" extension for easy access.
 2. **Open the Side Panel**: Click the extension icon to open the interactive side panel.
 3. **Save Your API Keys**: Expand the "Settings & API Keys" dropdown, paste your Gemini and Netlify keys, and hit "Save Settings". (Your keys are securely saved to your local Chrome storage).
-4. **Choose Your Source**:
+4. **Choose Your Source Content**:
    - Navigate to any webpage you want to transform (e.g., a Wikipedia article, a recipe blog). Ensure "Include content from current tab" is checked.
    - Alternatively, uncheck it and type a highly detailed description in the "Custom Instructions" box.
-5. **Configure AI Generation**: 
+5. **Feed Your Own Images (Optional)**: Click "Upload Images" to select local files. They are automatically previewed below the button. Click the (X) to remove them.
+6. **Configure AI Generation**: 
    - Select your preferred Text Model.
    - Toggle "Enable AI Image Generation" and choose your preferred image model.
-6. **Draft Site**: Click the **"Draft Site"** button. The extension will:
+7. **Draft Site**: Click the **"Draft Site"** button. The extension will:
    - Scrape the page (if enabled).
-   - Generate HTML/CSS via Gemini.
-   - Generate contextual image assets via Gemini/Imagen.
-7. **Preview and Deploy**: A new Chrome tab will open with a full-page local preview of your generated site. 
+   - Feed your uploaded local images instantly to Gemini.
+   - Generate HTML/CSS structure logic mapping your images.
+   - Generate AI contextual image assets dynamically via Imagen 3.
+8. **Preview and Deploy**: A new Chrome tab will open with a full-page local preview of your generated site representing the raw zipped payload. 
    - If you don't like it, click **Discard** (this cleans up the local cache).
    - If it looks great, click **Publish to Web**. The extension will bundle the assets and give you a live Netlify URL instantly!
 

@@ -19,13 +19,41 @@ document.addEventListener('DOMContentLoaded', () => {
   let uploadedFiles = [];
 
   imageUploadInput.addEventListener('change', (e) => {
-    uploadedFiles = Array.from(e.target.files);
-    if (uploadedFiles.length > 0) {
-      imagePreviewList.innerHTML = uploadedFiles.map(f => `<div>📄 ${f.name} (${Math.round(f.size / 1024)}kb)</div>`).join('');
-    } else {
-      imagePreviewList.innerHTML = '';
-    }
+    const newFiles = Array.from(e.target.files);
+    uploadedFiles = uploadedFiles.concat(newFiles);
+    e.target.value = ''; // Reset input to allow re-selecting
+    renderImagePreviews();
   });
+
+  function renderImagePreviews() {
+    imagePreviewList.innerHTML = '';
+
+    if (uploadedFiles.length === 0) return;
+
+    uploadedFiles.forEach((file, index) => {
+      const itemDiv = document.createElement('div');
+      itemDiv.className = 'preview-item';
+
+      const textSpan = document.createElement('span');
+      textSpan.className = 'preview-item-name';
+      textSpan.textContent = `📄 ${file.name} (${Math.round(file.size / 1024)}kb)`;
+
+      const removeBtn = document.createElement('button');
+      removeBtn.className = 'remove-btn';
+      removeBtn.title = 'Remove';
+      removeBtn.innerHTML = `<svg fill="currentColor" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>`;
+
+      removeBtn.addEventListener('click', (event) => {
+        event.preventDefault();
+        uploadedFiles.splice(index, 1);
+        renderImagePreviews();
+      });
+
+      itemDiv.appendChild(textSpan);
+      itemDiv.appendChild(removeBtn);
+      imagePreviewList.appendChild(itemDiv);
+    });
+  }
 
   // Load saved settings
   chrome.storage.local.get(['geminiKey', 'netlifyKey', 'geminiModel', 'imageModel', 'enableImageGen', 'customPrompt', 'scrapePage'], (result) => {
