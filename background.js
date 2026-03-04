@@ -14,6 +14,8 @@ function sendStatus(text) {
   chrome.runtime.sendMessage({ type: 'STATUS_UPDATE', text });
 }
 
+let currentAbortController = null;
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'START_PUBLISH_WORKFLOW') {
     const tabId = request.tabId;
@@ -22,8 +24,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     // Run workflow asynchronously
     runWorkflow(tabId, customPrompt, scrapePage).catch(error => {
-      console.error(error);
-      chrome.runtime.sendMessage({ type: 'WORKFLOW_ERROR', error: error.message });
+      if (error.name === 'AbortError' || (error.message && error.message.toLowerCase().includes('abort'))) {
+        chrome.runtime.sendMessage({ type: 'WORKFLOW_CANCELLED' });
+      } else {
+        console.error(error);
+        chrome.runtime.sendMessage({ type: 'WORKFLOW_ERROR', error: error.message });
+      }
     });
   } else if (request.action === 'CONFIRM_PUBLISH') {
     deployFromPreview().catch(error => {
@@ -36,11 +42,23 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     chrome.storage.local.remove('previewData');
     chrome.runtime.sendMessage({ type: 'WORKFLOW_DISCARDED' });
     sendResponse({ success: true });
+  } else if (request.action === 'CANCEL_WORKFLOW') {
+    if (currentAbortController) {
+      currentAbortController.abort();
+      currentAbortController = null;
+    }
+    sendResponse({ success: true });
   }
   return true;
 });
 
 async function runWorkflow(tabId, customPrompt, scrapePage) {
+  if (currentAbortController) {
+    currentAbortController.abort();
+  }
+  currentAbortController = new AbortController();
+  const signal = currentAbortController.signal;
+
   // 0. Load settings
   sendStatus('Loading settings...');
   const settings = await chrome.storage.local.get(['geminiKey', 'netlifyKey', 'geminiModel', 'imageModel', 'enableImageGen']);
@@ -106,10 +124,13 @@ async function runWorkflow(tabId, customPrompt, scrapePage) {
     }
   };
 
+  if (signal.aborted) throw new DOMException("Aborted", "AbortError");
+
   const textGenResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${geminiKey}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(generatePayload)
+    body: JSON.stringify(generatePayload),
+    signal
   });
 
   if (!textGenResponse.ok) {
@@ -199,10 +220,13 @@ async function runWorkflow(tabId, customPrompt, scrapePage) {
           url = `https://generativelanguage.googleapis.com/v1beta/models/${imageModel}:generateContent?key=${geminiKey}`;
         }
 
+        if (signal.aborted) throw new DOMException("Aborted", "AbortError");
+
         const imgRes = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
+          body: JSON.stringify(payload),
+          signal
         });
 
         if (!imgRes.ok) {

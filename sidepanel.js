@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const enableImageGenCheckbox = document.getElementById('enable-image-gen');
   const saveSettingsBtn = document.getElementById('save-settings');
   const publishBtn = document.getElementById('publish-btn');
+  const cancelBtn = document.getElementById('cancel-btn');
   const statusOutput = document.getElementById('status-output');
   const resultLinkDiv = document.getElementById('result-link');
   const liveUrlA = document.getElementById('live-url');
@@ -83,6 +84,9 @@ document.addEventListener('DOMContentLoaded', () => {
     await new Promise(resolve => chrome.storage.local.set(settings, resolve));
 
     publishBtn.disabled = true;
+    publishBtn.classList.add('hidden');
+    cancelBtn.classList.remove('hidden');
+    cancelBtn.disabled = false;
     resultLinkDiv.classList.add('hidden');
     logStatus('Starting Publish Workflow...', true);
 
@@ -93,11 +97,18 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!tab) {
         throw new Error('No active tab found.');
       }
-      if (tab.url.startsWith('chrome://')) {
-        throw new Error('Cannot run on chrome:// pages.');
-      }
 
-      logStatus(`Preparing to process tab: ${tab.title}`);
+      if (scrapePageCheckbox.checked) {
+        if (!tab.url) {
+          throw new Error('Cannot access tab URL. You may be on a restricted page.');
+        }
+        if (tab.url.startsWith('chrome://') || tab.url.startsWith('edge://')) {
+          throw new Error('Cannot scrape internal browser pages.');
+        }
+        logStatus(`Preparing to process tab: ${tab.title}`);
+      } else {
+        logStatus(`Generating site from Custom Instructions...`);
+      }
 
       // Tell background script to start workflow with the tab ID
       chrome.runtime.sendMessage({
@@ -109,9 +120,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
     } catch (error) {
       logStatus(`Error: ${error.message}`);
-      publishBtn.disabled = false;
+      resetUI();
     }
   });
+
+  cancelBtn.addEventListener('click', () => {
+    cancelBtn.disabled = true;
+    logStatus('Canceling workflow...');
+    chrome.runtime.sendMessage({ action: 'CANCEL_WORKFLOW' });
+    resetUI(); // Optimistically reset UI without waiting for background
+  });
+
+  function resetUI() {
+    publishBtn.disabled = false;
+    publishBtn.removeAttribute('disabled');
+    publishBtn.classList.remove('hidden');
+    cancelBtn.disabled = false;
+    cancelBtn.removeAttribute('disabled');
+    cancelBtn.classList.add('hidden');
+  }
 
   // Listen for status updates from background
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -122,13 +149,16 @@ document.addEventListener('DOMContentLoaded', () => {
       liveUrlA.href = message.url;
       liveUrlA.textContent = message.url;
       resultLinkDiv.classList.remove('hidden');
-      publishBtn.disabled = false;
+      resetUI();
     } else if (message.type === 'WORKFLOW_ERROR') {
       logStatus(`Error: ${message.error}`);
-      publishBtn.disabled = false;
+      resetUI();
     } else if (message.type === 'WORKFLOW_DISCARDED') {
       logStatus(`Draft discarded by user.`);
-      publishBtn.disabled = false;
+      resetUI();
+    } else if (message.type === 'WORKFLOW_CANCELLED') {
+      logStatus(`Workflow canceled by user.`);
+      resetUI();
     }
   });
 
